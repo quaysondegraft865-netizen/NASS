@@ -1,0 +1,8 @@
+{
+  "name": "Nkroful Agric Senior High School — Student Transcript & Results Management System",
+  "description": "Comprehensive student transcript, assessment, report card, and results management portal for Nkroful Agric Senior High School with verification and PDF generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
