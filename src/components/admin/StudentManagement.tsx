@@ -76,20 +76,26 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({
 
   // Filter students
   const filteredStudents = useMemo(() => {
-    return students.filter(s => {
-      const matchSearch =
-        s.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.student_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.admission_number.toLowerCase().includes(searchTerm.toLowerCase());
+    return students
+      .filter(s => {
+        const matchSearch =
+          s.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          s.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          s.student_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          s.admission_number.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchClass = selectedClass === 'all' || s.class_id === Number(selectedClass);
-      const matchProgramme = selectedProgramme === 'all' || s.programme === selectedProgramme;
-      const matchStatus = selectedStatus === 'all' || s.status === selectedStatus;
+        const matchClass = selectedClass === 'all' || s.class_id === Number(selectedClass);
+        const matchProgramme = selectedProgramme === 'all' || s.programme === selectedProgramme;
+        const matchStatus = selectedStatus === 'all' || s.status === selectedStatus;
 
-      return matchSearch && matchClass && matchProgramme && matchStatus;
-    });
+        return matchSearch && matchClass && matchProgramme && matchStatus;
+      })
+      .sort((a, b) => b.id - a.id);
   }, [students, searchTerm, selectedClass, selectedProgramme, selectedStatus]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [students.length]);
 
   // Paginated students
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
