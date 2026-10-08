@@ -12,6 +12,7 @@ import {
   AuditLog,
   TranscriptVerification
 } from '../types';
+import { FORM_1_CLASS_DEFINITIONS, FORM_1_ROSTERS } from './form1Rosters';
 import { FORM_2_CLASS_DEFINITIONS, FORM_2_STUDENT_ROWS } from './form2Rosters';
 
 export const INITIAL_SETTINGS: SchoolSettings = {
@@ -128,8 +129,24 @@ export const INITIAL_CLASSES: SchoolClass[] = [
   { id: 17, class_name: 'SHS 1 Science 2', form_level: 'SHS 1', programme: 'General Science', academic_year_id: 3, status: 'active' },
   { id: 18, class_name: 'SHS 1 Visual Arts 1', form_level: 'SHS 1', programme: 'Visual Arts 1', academic_year_id: 3, status: 'active' },
   { id: 19, class_name: 'SHS 1 Visual Arts 2', form_level: 'SHS 1', programme: 'Visual Arts 2', academic_year_id: 3, status: 'active' },
+  ...FORM_1_CLASS_DEFINITIONS,
   ...FORM_2_CLASS_DEFINITIONS,
 ];
+
+export const FORM_1_STUDENTS: Student[] = FORM_1_ROSTERS.flatMap((roster, classIndex) => roster.names.map((fullName, studentIndex) => {
+  const parts = fullName.split(/\\s+/);
+  const first_name = parts.shift() ?? fullName;
+  const last_name = parts.pop() ?? first_name;
+  return {
+    id: 20000 + classIndex * 100 + studentIndex,
+    student_id: `NASS/2025/1${String(classIndex + 1).padStart(2, '0')}${String(studentIndex + 1).padStart(2, '0')}`,
+    admission_number: `251${String(classIndex + 1).padStart(2, '0')}${String(studentIndex + 1).padStart(2, '0')}`,
+    first_name, middle_name: parts.join(' '), last_name,
+    gender: 'Male' as const, date_of_birth: '', nationality: 'Ghanaian', phone: '', email: '', address: '', guardian_name: '', guardian_phone: '',
+    class_id: 20 + classIndex, programme: roster.className.includes('APPLIED TECH') ? 'Applied Technology' : roster.className.includes('ARTS') ? 'General Arts' : roster.className.includes('AGRIC') ? 'Agricultural Science' : roster.className.includes('BUSINESS') ? 'Business' : roster.className.includes('HOME ECONOMICS') ? 'Home Economics' : roster.className.includes('SCIENCE') ? 'General Science' : 'Visual Arts',
+    year_group: '2025-2028', admission_year: 2025, graduation_year: 2028, photo: '', status: 'active' as const, created_at: '2025-10-01', updated_at: '2025-10-01',
+  };
+}));
 
 export const FORM_2_STUDENTS: Student[] = FORM_2_STUDENT_ROWS.map((student, index) => ({
   id: 10000 + index,
@@ -18055,7 +18072,7 @@ export function generateInitialResults(): ResultRecord[] {
   return results;
 }
 
-export const INITIAL_STUDENTS_WITH_FORM_2 = [...INITIAL_STUDENTS, ...FORM_2_STUDENTS];
+export const INITIAL_STUDENTS_WITH_FORM_2 = [...INITIAL_STUDENTS, ...FORM_1_STUDENTS, ...FORM_2_STUDENTS];
 
 export const INITIAL_TRANSCRIPTS: TranscriptVerification[] = [
   {
