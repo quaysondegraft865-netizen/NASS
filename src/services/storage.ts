@@ -20,7 +20,7 @@ import {
   INITIAL_CLASSES,
   INITIAL_SUBJECTS,
   INITIAL_TEACHERS,
-  INITIAL_STUDENTS,
+  INITIAL_STUDENTS_WITH_FORM_2,
   INITIAL_TEACHER_ASSIGNMENTS,
   INITIAL_TRANSCRIPTS,
   INITIAL_AUDIT_LOGS,
@@ -68,7 +68,6 @@ export const StorageService = {
     if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
       this.resetAllToDefaults();
     } else {
-      // Sync motto if it has old placeholder
       const current = this.getSettings();
       if (current.motto !== INITIAL_SETTINGS.motto) {
         current.motto = INITIAL_SETTINGS.motto;
@@ -79,13 +78,13 @@ export const StorageService = {
 
   resetAllToDefaults(): void {
     setItem(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
-    setItem(STORAGE_KEYS.USERS, INITIAL_USERS);
+    setItem(STORAGE_KEYS.USERS, INITIAL_USERS.slice(0, 1));
     setItem(STORAGE_KEYS.YEARS, INITIAL_ACADEMIC_YEARS);
     setItem(STORAGE_KEYS.TERMS, INITIAL_TERMS);
     setItem(STORAGE_KEYS.CLASSES, INITIAL_CLASSES);
     setItem(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
     setItem(STORAGE_KEYS.TEACHERS, INITIAL_TEACHERS);
-    setItem(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS);
+    setItem(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS_WITH_FORM_2);
     setItem(STORAGE_KEYS.ASSIGNMENTS, INITIAL_TEACHER_ASSIGNMENTS);
     setItem(STORAGE_KEYS.RESULTS, generateInitialResults());
     setItem(STORAGE_KEYS.TRANSCRIPTS, INITIAL_TRANSCRIPTS);
@@ -227,7 +226,7 @@ export const StorageService = {
 
   // Students
   getStudents(): Student[] {
-    return getItem<Student[]>(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS);
+    return getItem<Student[]>(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS_WITH_FORM_2);
   },
 
   saveStudent(student: Omit<Student, 'id'> & { id?: number }, user: User): Student {

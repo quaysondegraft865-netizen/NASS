@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import JSZip from 'jszip';
 import { Student, SchoolClass, User } from '../../types';
 import { SchoolCrest } from '../common/SchoolCrest';
 import {
@@ -73,23 +74,99 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const normalizeHeader = (value: string) => value.trim().toLowerCase().replace(/[\s_-]+/g, '');
+
+  const parseCsv = (text: string): string[][] => text.trim().split(/\r?\n/).map(line => {
+    const cells: string[] = [];
+    let cell = '', quoted = false;
+    for (const char of line) {
+      if (char === '"') quoted = !quoted;
+      else if (char === ',' && !quoted) { cells.push(cell.trim()); cell = ''; }
+      else cell += char;
+    }
+    cells.push(cell.trim());
+    return cells;
+  });
+
+  const parseXlsx = async (file: File): Promise<string[][]> => {
+    const zip = await JSZip.loadAsync(await file.arrayBuffer());
+    const sharedXml = await zip.file('xl/sharedStrings.xml')?.async('string');
+    const sharedStrings = sharedXml ? [...sharedXml.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(match =>
+      match[1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    ) : [];
+    const sheetFile = Object.keys(zip.files).find(name => /^xl\/worksheets\/sheet1\.xml$/.test(name));
+    if (!sheetFile) throw new Error('The workbook does not contain a first worksheet.');
+    const sheetXml = await zip.file(sheetFile)!.async('string');
+    return [...sheetXml.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)].map(row =>
+      [...row[1].matchAll(/<c([^>]*)>([\s\S]*?)<\/c>/g)].map(cell => {
+        const value = cell[2].match(/<v[^>]*>([\s\S]*?)<\/v>/)?.[1] ?? '';
+        return /t="s"/.test(cell[1]) ? (sharedStrings[Number(value)] ?? '') : value;
+      })
+    );
+  };
+
+  const handleImportStudents = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setIsImporting(true);
+    try {
+      const rows = file.name.toLowerCase().endsWith('.csv')
+        ? parseCsv(await file.text())
+        : await parseXlsx(file);
+      if (rows.length < 2) throw new Error('Add a header row and at least one student row.');
+      const headers = rows[0].map(normalizeHeader);
+      const value = (row: string[], ...names: string[]) => row[headers.findIndex(header => names.includes(header))]?.trim() || '';
+      const imported = rows.slice(1).filter(row => row.some(Boolean)).map((row, index) => {
+        const classValue = value(row, 'classid', 'class', 'classname');
+        const matchedClass = classes.find(c => String(c.id) === classValue || c.class_name.toLowerCase() === classValue.toLowerCase());
+        const firstName = value(row, 'firstname', 'first');
+        const lastName = value(row, 'lastname', 'last', 'surname');
+        const studentId = value(row, 'studentid', 'id');
+        if (!firstName || !lastName || !studentId) throw new Error(`Row ${index + 2} needs student_id, first_name, and last_name.`);
+        return {
+          student_id: studentId, admission_number: value(row, 'admissionnumber', 'admissionno', 'admission') || studentId,
+          first_name: firstName, middle_name: value(row, 'middlename', 'middle'), last_name: lastName,
+          gender: value(row, 'gender').toLowerCase() === 'female' ? 'Female' as const : 'Male' as const,
+          date_of_birth: value(row, 'dateofbirth', 'dob') || '2008-01-01', nationality: value(row, 'nationality') || 'Ghanaian',
+          phone: value(row, 'phone'), email: value(row, 'email'), address: value(row, 'address'),
+          guardian_name: value(row, 'guardianname', 'guardian') || 'Not provided', guardian_phone: value(row, 'guardianphone', 'guardiancontact') || 'Not provided',
+          class_id: matchedClass?.id ?? classes[0]?.id ?? 1, programme: value(row, 'programme', 'program') || classes.find(c => c.id === (matchedClass?.id ?? classes[0]?.id))?.programme || 'General Science',
+          year_group: value(row, 'yeargroup') || '2025-2028', admission_year: Number(value(row, 'admissionyear')) || 2025, graduation_year: Number(value(row, 'graduationyear')) || 2028,
+          photo: value(row, 'photo'), status: ['active', 'graduated', 'transferred', 'suspended'].includes(value(row, 'status')) ? value(row, 'status') as Student['status'] : 'active',
+        };
+      });
+      imported.forEach(student => onSaveStudent(student));
+      alert(`${imported.length} student${imported.length === 1 ? '' : 's'} imported successfully.`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Unable to import this file.');
+    } finally { setIsImporting(false); }
+  };
 
   // Filter students
   const filteredStudents = useMemo(() => {
-    return students.filter(s => {
-      const matchSearch =
-        s.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.student_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.admission_number.toLowerCase().includes(searchTerm.toLowerCase());
+    return students
+      .filter(s => {
+        const matchSearch =
+          s.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          s.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          s.student_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          s.admission_number.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchClass = selectedClass === 'all' || s.class_id === Number(selectedClass);
-      const matchProgramme = selectedProgramme === 'all' || s.programme === selectedProgramme;
-      const matchStatus = selectedStatus === 'all' || s.status === selectedStatus;
+        const matchClass = selectedClass === 'all' || s.class_id === Number(selectedClass);
+        const matchProgramme = selectedProgramme === 'all' || s.programme === selectedProgramme;
+        const matchStatus = selectedStatus === 'all' || s.status === selectedStatus;
 
-      return matchSearch && matchClass && matchProgramme && matchStatus;
-    });
+        return matchSearch && matchClass && matchProgramme && matchStatus;
+      })
+      .sort((a, b) => b.id - a.id);
   }, [students, searchTerm, selectedClass, selectedProgramme, selectedStatus]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [students.length]);
 
   // Paginated students
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -175,13 +252,19 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition-colors shadow-xs cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Enroll New Student</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <label className="border border-emerald-800 text-emerald-900 hover:bg-emerald-50 font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition-colors cursor-pointer">
+            <input type="file" accept=".xlsx,.csv" onChange={handleImportStudents} disabled={isImporting} className="sr-only" />
+            <span>{isImporting ? 'Importing...' : 'Import Excel'}</span>
+          </label>
+          <button
+            onClick={handleOpenAdd}
+            className="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Enroll New Student</span>
+          </button>
+        </div>
       </div>
 
       {/* Search & Filter Toolbar */}

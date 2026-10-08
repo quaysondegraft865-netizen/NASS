@@ -43,12 +43,10 @@ import { StudentResultsView } from './components/student/StudentResultsView';
 import { StudentTranscriptView } from './components/student/StudentTranscriptView';
 
 export function App() {
-  // Initialize storage
-  useEffect(() => {
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
     StorageService.init();
-  }, []);
-
-  const [currentUser, setCurrentUser] = useState<User | null>(() => StorageService.getCurrentUser());
+    return StorageService.getCurrentUser();
+  });
   const [currentView, setCurrentView] = useState<'portal' | 'landing' | 'login' | 'verify'>(() => {
     return StorageService.getCurrentUser() ? 'portal' : 'landing';
   });
