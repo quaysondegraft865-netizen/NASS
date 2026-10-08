@@ -65,10 +65,7 @@ function setItem<T>(key: string, val: T): void {
 export const StorageService = {
   // Initialization
   init(): void {
-    const storedStudents = getItem<Student[]>(STORAGE_KEYS.STUDENTS, []);
-    const hasDemoRecords = storedStudents.some((student) => String(student.student_id).startsWith('NASS/'));
-
-    if (!localStorage.getItem(STORAGE_KEYS.SETTINGS) || hasDemoRecords) {
+    if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
       this.resetAllToDefaults();
     } else {
       const current = this.getSettings();
@@ -82,16 +79,16 @@ export const StorageService = {
   resetAllToDefaults(): void {
     setItem(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
     setItem(STORAGE_KEYS.USERS, INITIAL_USERS.slice(0, 1));
-    setItem(STORAGE_KEYS.YEARS, []);
-    setItem(STORAGE_KEYS.TERMS, []);
-    setItem(STORAGE_KEYS.CLASSES, []);
-    setItem(STORAGE_KEYS.SUBJECTS, []);
-    setItem(STORAGE_KEYS.TEACHERS, []);
-    setItem(STORAGE_KEYS.STUDENTS, []);
-    setItem(STORAGE_KEYS.ASSIGNMENTS, []);
-    setItem(STORAGE_KEYS.RESULTS, []);
-    setItem(STORAGE_KEYS.TRANSCRIPTS, []);
-    setItem(STORAGE_KEYS.AUDIT_LOGS, []);
+    setItem(STORAGE_KEYS.YEARS, INITIAL_ACADEMIC_YEARS);
+    setItem(STORAGE_KEYS.TERMS, INITIAL_TERMS);
+    setItem(STORAGE_KEYS.CLASSES, INITIAL_CLASSES);
+    setItem(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
+    setItem(STORAGE_KEYS.TEACHERS, INITIAL_TEACHERS);
+    setItem(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS);
+    setItem(STORAGE_KEYS.ASSIGNMENTS, INITIAL_TEACHER_ASSIGNMENTS);
+    setItem(STORAGE_KEYS.RESULTS, generateInitialResults());
+    setItem(STORAGE_KEYS.TRANSCRIPTS, INITIAL_TRANSCRIPTS);
+    setItem(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
     setItem(STORAGE_KEYS.CURRENT_USER, null);
   },
 
