@@ -12,6 +12,7 @@ import {
   AuditLog,
   TranscriptVerification
 } from '../types';
+import { FORM_2_CLASS_DEFINITIONS, FORM_2_STUDENT_ROWS } from './form2Rosters';
 
 export const INITIAL_SETTINGS: SchoolSettings = {
   school_name: 'NKROFUL AGRIC SENIOR HIGH SCHOOL',
@@ -127,7 +128,28 @@ export const INITIAL_CLASSES: SchoolClass[] = [
   { id: 17, class_name: 'SHS 1 Science 2', form_level: 'SHS 1', programme: 'General Science', academic_year_id: 3, status: 'active' },
   { id: 18, class_name: 'SHS 1 Visual Arts 1', form_level: 'SHS 1', programme: 'Visual Arts 1', academic_year_id: 3, status: 'active' },
   { id: 19, class_name: 'SHS 1 Visual Arts 2', form_level: 'SHS 1', programme: 'Visual Arts 2', academic_year_id: 3, status: 'active' },
+  ...FORM_2_CLASS_DEFINITIONS,
 ];
+
+export const FORM_2_STUDENTS: Student[] = FORM_2_STUDENT_ROWS.map((student, index) => ({
+  id: 10000 + index,
+  ...student,
+  gender: 'Male' as const,
+  date_of_birth: '',
+  nationality: 'Ghanaian',
+  phone: '',
+  email: '',
+  address: '',
+  guardian_name: '',
+  guardian_phone: '',
+  year_group: '2024-2027',
+  admission_year: 2024,
+  graduation_year: 2027,
+  photo: '',
+  status: 'active' as const,
+  created_at: '2025-10-01',
+  updated_at: '2025-10-01',
+}));
 
 export const INITIAL_SUBJECTS: Subject[] = [
   // Core Subjects
@@ -18032,6 +18054,8 @@ export function generateInitialResults(): ResultRecord[] {
 
   return results;
 }
+
+export const INITIAL_STUDENTS_WITH_FORM_2 = [...INITIAL_STUDENTS, ...FORM_2_STUDENTS];
 
 export const INITIAL_TRANSCRIPTS: TranscriptVerification[] = [
   {

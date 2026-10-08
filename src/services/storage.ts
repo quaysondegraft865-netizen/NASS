@@ -20,7 +20,7 @@ import {
   INITIAL_CLASSES,
   INITIAL_SUBJECTS,
   INITIAL_TEACHERS,
-  INITIAL_STUDENTS,
+  INITIAL_STUDENTS_WITH_FORM_2,
   INITIAL_TEACHER_ASSIGNMENTS,
   INITIAL_TRANSCRIPTS,
   INITIAL_AUDIT_LOGS,
@@ -84,7 +84,7 @@ export const StorageService = {
     setItem(STORAGE_KEYS.CLASSES, INITIAL_CLASSES);
     setItem(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
     setItem(STORAGE_KEYS.TEACHERS, INITIAL_TEACHERS);
-    setItem(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS);
+    setItem(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS_WITH_FORM_2);
     setItem(STORAGE_KEYS.ASSIGNMENTS, INITIAL_TEACHER_ASSIGNMENTS);
     setItem(STORAGE_KEYS.RESULTS, generateInitialResults());
     setItem(STORAGE_KEYS.TRANSCRIPTS, INITIAL_TRANSCRIPTS);
@@ -226,7 +226,7 @@ export const StorageService = {
 
   // Students
   getStudents(): Student[] {
-    return getItem<Student[]>(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS);
+    return getItem<Student[]>(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS_WITH_FORM_2);
   },
 
   saveStudent(student: Omit<Student, 'id'> & { id?: number }, user: User): Student {
