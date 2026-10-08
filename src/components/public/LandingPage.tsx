@@ -91,6 +91,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>Verify Transcript</span>
             </button>
             <button
+              onClick={() => onOpenLogin('super_admin')}
+              className="px-3 py-2 text-xs font-semibold text-[#0f3d24] hover:text-[#0c2f1c] hover:underline transition-colors cursor-pointer"
+            >
+              Super Admin
+            </button>
+            <button
               onClick={() => onOpenLogin()}
               className="px-4 py-2 bg-[#0f3d24] hover:bg-[#0c2f1c] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
