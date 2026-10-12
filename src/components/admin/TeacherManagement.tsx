@@ -76,6 +76,30 @@ export const TeacherManagement: React.FC<TeacherManagementProps> = ({
     setIsFormOpen(true);
   };
 
+  const handleDeleteTeacher = (teacher: Teacher) => {
+    const hasAssignments = assignments.some(a => a.teacher_id === teacher.id);
+    const confirmMessage = hasAssignments
+      ? `This teacher is assigned to ${hasAssignments} class(es). Delete them anyway?`
+      : `Delete teacher ${teacher.first_name} ${teacher.last_name}?`;
+
+    if (!window.confirm(confirmMessage)) return;
+
+    const updatedTeachers = teachers.filter(t => t.id !== teacher.id);
+    const updatedAssignments = assignments.filter(a => a.teacher_id !== teacher.id);
+
+    const nextValues = {
+      teachers: updatedTeachers,
+      assignments: updatedAssignments,
+    };
+
+    const storageKey = 'nass_teachers_v1';
+    const assignmentsKey = 'nass_assignments_v1';
+    localStorage.setItem(storageKey, JSON.stringify(nextValues.teachers));
+    localStorage.setItem(assignmentsKey, JSON.stringify(nextValues.assignments));
+
+    window.location.reload();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.first_name || !formData.last_name || !formData.teacher_id) {
@@ -200,6 +224,13 @@ export const TeacherManagement: React.FC<TeacherManagementProps> = ({
                     title="Edit Teacher"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTeacher(teacher)}
+                    className="p-1.5 text-slate-500 hover:text-red-700 rounded hover:bg-red-50 cursor-pointer"
+                    title="Delete Teacher"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => {
