@@ -6,7 +6,8 @@ import {
   LogOut,
   Download,
   Calendar,
-  Globe
+  Globe,
+  Trash2
 } from 'lucide-react';
 import { exportPhpProjectZip } from '../../utils/phpExporter';
 
@@ -26,6 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   onNavigateVerify,
   onNavigateLanding,
+  onResetData,
 }) => {
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
@@ -67,6 +69,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Backup Package (SQL/PHP)</span>
+          </button>
+          <span className="text-slate-600">|</span>
+          <button
+            onClick={onResetData}
+            className="hover:text-red-300 flex items-center gap-1.5 transition-colors cursor-pointer text-red-200"
+            title="Reset the school system to factory defaults"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Reset System</span>
           </button>
         </div>
       </div>
